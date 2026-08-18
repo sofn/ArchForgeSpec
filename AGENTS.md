@@ -83,3 +83,6 @@ Additional constraints:
 - Respect each repository's `can_modify` / `owns` boundaries in `repos.yaml`.
 - Do not treat this repository as an SDK distribution; SDK generation is out of scope for now.
 - Documentation belongs in `ArchForgeDocs`, not in `ArchForgeSpec`.
+- **Contract sync rule**: when backend APIs change in `ArchForge`
+  (server-admin / server-web), `api/openapi.yaml` must be updated in the same
+  change. Keep this contract in sync with springdoc `/v3/api-docs`.
