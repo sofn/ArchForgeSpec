@@ -1,0 +1,849 @@
+# ArchForge Platform API Contract (OpenAPI 3.1)
+#
+# Curated contract view of the ArchForge platform HTTP API.
+# Derived from the backend source code (com.lesofn.archforge).
+#
+# The backend is split into TWO Spring Boot applications, each exposing its own
+# springdoc-generated spec at runtime:
+#   - server-admin  (port 8080)  ->  http://localhost:8080/v3/api-docs
+#   - server-web    (port 8081)  ->  http://localhost:8081/v3/api-docs
+# This file merges both into a single contract. The runtime /v3/api-docs remains
+# the authoritative, machine-generated source; keep this file in sync with it.
+#
+# Auth: Sa-Token, `Authorization: Bearer <JWT>` (token-name Authorization,
+#       token-prefix Bearer). Configured in SwaggerConfig as scheme "bearer".
+#
+# Standard: OpenAPI 3.1.x (compatible with JSON Schema 2020-12). Versioning: SemVer.
+
+openapi: 3.1.0
+
+info:
+  title: ArchForge Platform API
+  version: 1.0.0
+  description: >
+    Cross-repository HTTP API contract for the ArchForge platform.
+    Owned by ArchForgeSpec. Backend group: com.lesofn.archforge.
+    Two backend applications: server-admin (admin API) and server-web (consumer web API).
+
+servers:
+  - url: http://localhost:8080
+    description: server-admin (admin API)
+  - url: http://localhost:8081
+    description: server-web (consumer web API)
+
+tags:
+  - name: auth
+    description: 登录认证 (server-admin /auth)
+  - name: blog
+    description: 博客管理 (server-admin /blog)
+  - name: file
+    description: 文件管理 (server-admin /file)
+  - name: meta-table
+    description: 元数据表 (server-admin /meta-table)
+  - name: monitor
+    description: 服务监控 (server-admin /monitor)
+  - name: quartz
+    description: 定时任务 (server-admin /quartz)
+  - name: system
+    description: 系统字典/菜单/角色 (server-admin /system)
+  - name: admin-user
+    description: 用户/部门/角色/菜单/通知/配置/日志管理 (server-admin /admin)
+  - name: web-auth
+    description: 用户端认证 (server-web /web)
+  - name: web-blog
+    description: 用户端博客 (server-web /web)
+  - name: web-dashboard
+    description: 用户端仪表盘 (server-web /web/dashboard)
+  - name: web-file
+    description: 用户端文件 (server-web /web/file)
+  - name: web-user
+    description: 用户端用户 (server-web /web/user)
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ============ server-admin /auth ============
+  /auth/getConfig:
+    get:
+      tags: [auth]
+      summary: 获取系统配置
+      operationId: getLoginConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginConfigResponse" }
+
+  /auth/captchaImage:
+    get:
+      tags: [auth]
+      summary: 获取验证码图片
+      operationId: getCaptchaImage
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CaptchaResponse" }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: 登录
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginResponse" }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: 退出登录
+      operationId: logout
+      responses:
+        "200":
+          description: OK
+
+  /auth/refresh-token:
+    post:
+      tags: [auth]
+      summary: 刷新令牌
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RefreshTokenResponse" }
+
+  /auth/getLoginUserInfo:
+    get:
+      tags: [auth]
+      summary: 获取当前登录用户信息
+      operationId: getLoginUserInfo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CurrentLoginUserResponse" }
+
+  /auth/getRouters:
+    get:
+      tags: [auth]
+      summary: 获取用户菜单路由
+      operationId: getRouters
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RouterDTO" }
+
+  /auth/get-async-routes:
+    get:
+      tags: [auth]
+      summary: 获取异步路由 (兼容 vue-pure-admin)
+      operationId: getAsyncRoutes
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RouterDTO" }
+
+  # ============ server-admin /blog ============
+  /blog/article/create:
+    post:
+      tags: [blog]
+      summary: 创建文章
+      operationId: createArticle
+      responses: { "200": { description: OK } }
+
+  /blog/article/update:
+    put:
+      tags: [blog]
+      summary: 更新文章
+      operationId: updateArticle
+      responses: { "200": { description: OK } }
+
+  /blog/article/delete:
+    post:
+      tags: [blog]
+      summary: 删除文章
+      operationId: deleteArticle
+      responses: { "200": { description: OK } }
+
+  /blog/article/{id}/publish:
+    post:
+      tags: [blog]
+      summary: 发布文章
+      operationId: publishArticle
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /blog/article/{id}/offline:
+    post:
+      tags: [blog]
+      summary: 下架文章
+      operationId: offlineArticle
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /blog/category/create:
+    post:
+      tags: [blog]
+      summary: 创建分类
+      operationId: createBlogCategory
+      responses: { "200": { description: OK } }
+
+  /blog/category/update:
+    put:
+      tags: [blog]
+      summary: 更新分类
+      operationId: updateBlogCategory
+      responses: { "200": { description: OK } }
+
+  /blog/category/delete:
+    post:
+      tags: [blog]
+      summary: 删除分类
+      operationId: deleteBlogCategory
+      responses: { "200": { description: OK } }
+
+  /blog/file/upload:
+    post:
+      tags: [blog]
+      summary: 上传博客文件
+      operationId: uploadBlogFile
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /file ============
+  /file/upload:
+    post:
+      tags: [file]
+      summary: 上传文件
+      operationId: uploadFile
+      responses: { "200": { description: OK } }
+
+  /file/upload-image:
+    post:
+      tags: [file]
+      summary: 上传图片
+      operationId: uploadImage
+      responses: { "200": { description: OK } }
+
+  /file/download/{fileId}:
+    get:
+      tags: [file]
+      summary: 下载文件
+      operationId: downloadFile
+      parameters:
+        - { name: fileId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /file/{fileId}:
+    delete:
+      tags: [file]
+      summary: 删除文件
+      operationId: deleteFile
+      parameters:
+        - { name: fileId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /meta-table ============
+  /meta-table/create:
+    post:
+      tags: [meta-table]
+      summary: 创建元数据表
+      operationId: createMetaTable
+      responses: { "200": { description: OK } }
+
+  /meta-table/{id}:
+    get:
+      tags: [meta-table]
+      summary: 获取元数据表
+      operationId: getMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    put:
+      tags: [meta-table]
+      summary: 更新元数据表
+      operationId: updateMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    delete:
+      tags: [meta-table]
+      summary: 删除元数据表
+      operationId: deleteMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /meta-table/{id}/generate:
+    post:
+      tags: [meta-table]
+      summary: 生成元数据表代码
+      operationId: generateMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /meta-table/{id}/migrations:
+    get:
+      tags: [meta-table]
+      summary: 获取迁移记录
+      operationId: getMetaTableMigrations
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /meta-table/{id}/export:
+    get:
+      tags: [meta-table]
+      summary: 导出元数据表
+      operationId: exportMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /meta-table/{id}/import:
+    post:
+      tags: [meta-table]
+      summary: 导入元数据表
+      operationId: importMetaTable
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /monitor ============
+  /monitor/online-logs:
+    post:
+      tags: [monitor]
+      summary: 在线日志
+      operationId: monitorOnlineLogs
+      responses: { "200": { description: OK } }
+
+  /monitor/cache-info:
+    get:
+      tags: [monitor]
+      summary: 缓存信息
+      operationId: monitorCacheInfo
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /quartz ============
+  /quartz/add:
+    post:
+      tags: [quartz]
+      summary: 新增定时任务
+      operationId: addQuartzJob
+      responses: { "200": { description: OK } }
+
+  /quartz/update/{id}:
+    put:
+      tags: [quartz]
+      summary: 更新定时任务
+      operationId: updateQuartzJob
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /quartz/{id}:
+    delete:
+      tags: [quartz]
+      summary: 删除定时任务
+      operationId: deleteQuartzJob
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /quartz/pause/{id}:
+    post:
+      tags: [quartz]
+      summary: 暂停定时任务
+      operationId: pauseQuartzJob
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /quartz/resume/{id}:
+    post:
+      tags: [quartz]
+      summary: 恢复定时任务
+      operationId: resumeQuartzJob
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /quartz/run/{id}:
+    post:
+      tags: [quartz]
+      summary: 立即执行定时任务
+      operationId: runQuartzJob
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /quartz/log:
+    get:
+      tags: [quartz]
+      summary: 任务执行日志
+      operationId: quartzJobLog
+      responses: { "200": { description: OK } }
+
+  /quartz/validate-cron:
+    post:
+      tags: [quartz]
+      summary: 校验 cron 表达式
+      operationId: validateCron
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /system ============
+  /system/dict/type/create:
+    post:
+      tags: [system]
+      summary: 创建字典类型
+      operationId: createDictType
+      responses: { "200": { description: OK } }
+
+  /system/dict/type/{dictCode}:
+    get:
+      tags: [system]
+      summary: 获取字典类型
+      operationId: getDictType
+      parameters:
+        - { name: dictCode, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /system/menu/tree:
+    get:
+      tags: [system]
+      summary: 获取菜单树
+      operationId: getMenuTree
+      responses: { "200": { description: OK } }
+
+  /system/menu/{id}:
+    get:
+      tags: [system]
+      summary: 获取菜单
+      operationId: getMenu
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    put:
+      tags: [system]
+      summary: 更新菜单
+      operationId: updateMenu
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    delete:
+      tags: [system]
+      summary: 删除菜单
+      operationId: deleteMenu
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /system/role/all:
+    get:
+      tags: [system]
+      summary: 获取全部角色
+      operationId: getAllRoles
+      responses: { "200": { description: OK } }
+
+  /system/role/{id}:
+    get:
+      tags: [system]
+      summary: 获取角色
+      operationId: getRole
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    put:
+      tags: [system]
+      summary: 更新角色
+      operationId: updateRole
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+    delete:
+      tags: [system]
+      summary: 删除角色
+      operationId: deleteRole
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  # ============ server-admin /admin ============
+  /admin/user/create:
+    post:
+      tags: [admin-user]
+      summary: 创建用户
+      operationId: createUser
+      responses: { "200": { description: OK } }
+
+  /admin/user/update:
+    put:
+      tags: [admin-user]
+      summary: 更新用户
+      operationId: updateUser
+      responses: { "200": { description: OK } }
+
+  /admin/user/delete:
+    post:
+      tags: [admin-user]
+      summary: 删除用户
+      operationId: deleteUser
+      responses: { "200": { description: OK } }
+
+  /admin/user/reset-password:
+    post:
+      tags: [admin-user]
+      summary: 重置用户密码
+      operationId: resetUserPassword
+      responses: { "200": { description: OK } }
+
+  /admin/user/assign-role:
+    post:
+      tags: [admin-user]
+      summary: 分配角色
+      operationId: assignUserRole
+      responses: { "200": { description: OK } }
+
+  /admin/user/export:
+    get:
+      tags: [admin-user]
+      summary: 导出用户
+      operationId: exportUsers
+      responses: { "200": { description: OK } }
+
+  /admin/dept/create:
+    post:
+      tags: [admin-user]
+      summary: 创建部门
+      operationId: createDept
+      responses: { "200": { description: OK } }
+
+  /admin/role/all:
+    get:
+      tags: [admin-user]
+      summary: 获取全部角色
+      operationId: adminGetAllRoles
+      responses: { "200": { description: OK } }
+
+  /admin/role/create:
+    post:
+      tags: [admin-user]
+      summary: 创建角色
+      operationId: adminCreateRole
+      responses: { "200": { description: OK } }
+
+  /admin/menu/create:
+    post:
+      tags: [admin-user]
+      summary: 创建菜单
+      operationId: adminCreateMenu
+      responses: { "200": { description: OK } }
+
+  /admin/notice/create:
+    post:
+      tags: [admin-user]
+      summary: 创建通知
+      operationId: createNotice
+      responses: { "200": { description: OK } }
+
+  /admin/config/create:
+    post:
+      tags: [admin-user]
+      summary: 创建参数配置
+      operationId: createConfig
+      responses: { "200": { description: OK } }
+
+  /admin/login-log/clear:
+    post:
+      tags: [admin-user]
+      summary: 清空登录日志
+      operationId: clearLoginLog
+      responses: { "200": { description: OK } }
+
+  /admin/operation-log/clear:
+    post:
+      tags: [admin-user]
+      summary: 清空操作日志
+      operationId: clearOperationLog
+      responses: { "200": { description: OK } }
+
+  # ============ server-web /web ============
+  /web/login:
+    post:
+      tags: [web-auth]
+      summary: 用户登录
+      operationId: webLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebLoginRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WebLoginResponse" }
+
+  /web/register:
+    post:
+      tags: [web-auth]
+      summary: 用户注册
+      operationId: webRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebRegisterRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WebLoginResponse" }
+
+  /web/refresh-token:
+    post:
+      tags: [web-auth]
+      summary: 刷新令牌
+      operationId: webRefreshToken
+      responses: { "200": { description: OK } }
+
+  /web/logout:
+    post:
+      tags: [web-auth]
+      summary: 退出登录
+      operationId: webLogout
+      responses: { "200": { description: OK } }
+
+  /web/verification-code/send:
+    post:
+      tags: [web-auth]
+      summary: 发送验证码
+      operationId: webSendVerificationCode
+      responses: { "200": { description: OK } }
+
+  /web/forgot-password:
+    post:
+      tags: [web-auth]
+      summary: 忘记密码
+      operationId: webForgotPassword
+      responses: { "200": { description: OK } }
+
+  /web/reset-password:
+    post:
+      tags: [web-auth]
+      summary: 重置密码
+      operationId: webResetPassword
+      responses: { "200": { description: OK } }
+
+  /web/categories:
+    get:
+      tags: [web-blog]
+      summary: 获取文章分类
+      operationId: webCategories
+      responses: { "200": { description: OK } }
+
+  /web/articles:
+    get:
+      tags: [web-blog]
+      summary: 获取文章列表
+      operationId: webArticles
+      responses: { "200": { description: OK } }
+    post:
+      tags: [web-blog]
+      summary: 发布文章
+      operationId: webCreateArticle
+      responses: { "200": { description: OK } }
+
+  /web/articles/{slug}:
+    get:
+      tags: [web-blog]
+      summary: 获取文章详情
+      operationId: webArticleDetail
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /web/user/articles:
+    get:
+      tags: [web-blog]
+      summary: 获取当前用户文章
+      operationId: webUserArticles
+      responses: { "200": { description: OK } }
+
+  /web/dashboard/metrics:
+    get:
+      tags: [web-dashboard]
+      summary: 仪表盘指标
+      operationId: webDashboardMetrics
+      responses: { "200": { description: OK } }
+
+  /web/file/upload:
+    post:
+      tags: [web-file]
+      summary: 上传文件
+      operationId: webUploadFile
+      responses: { "200": { description: OK } }
+
+  /web/file/{fileId}:
+    get:
+      tags: [web-file]
+      summary: 获取文件
+      operationId: webGetFile
+      parameters:
+        - { name: fileId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: OK } }
+
+  /web/notices:
+    get:
+      tags: [web-auth]
+      summary: 获取通知列表
+      operationId: webNotices
+      responses: { "200": { description: OK } }
+
+  /web/operation-logs:
+    get:
+      tags: [web-auth]
+      summary: 获取操作日志
+      operationId: webOperationLogs
+      responses: { "200": { description: OK } }
+
+  /web/user/profile:
+    get:
+      tags: [web-user]
+      summary: 获取个人资料
+      operationId: webUserProfile
+      responses: { "200": { description: OK } }
+
+  /web/user/change-password:
+    post:
+      tags: [web-user]
+      summary: 修改密码
+      operationId: webChangePassword
+      responses: { "200": { description: OK } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Sa-Token 认证，`Authorization: Bearer <JWT>`
+
+  schemas:
+    # ---- admin auth ----
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+        captcha: { type: string, description: 验证码 }
+        uuid: { type: string, description: 验证码标识 }
+
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string, description: Sa-Token 令牌 }
+        user: { $ref: "#/components/schemas/CurrentLoginUserResponse" }
+
+    LoginConfigResponse:
+      type: object
+      properties:
+        captchaEnabled: { type: boolean, description: 是否启用验证码 }
+
+    CaptchaResponse:
+      type: object
+      properties:
+        uuid: { type: string }
+        img: { type: string, description: Base64 验证码图片 }
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+
+    RefreshTokenResponse:
+      type: object
+      properties:
+        token: { type: string }
+
+    CurrentLoginUserResponse:
+      type: object
+      properties:
+        userId: { type: string }
+        username: { type: string }
+        nickname: { type: string }
+        roles: { type: array, items: { type: string } }
+        permissions: { type: array, items: { type: string } }
+
+    RouterDTO:
+      type: object
+      properties:
+        path: { type: string }
+        name: { type: string }
+        component: { type: string }
+        meta: { type: object, additionalProperties: true }
+        children: { type: array, items: { $ref: "#/components/schemas/RouterDTO" } }
+
+    # ---- web auth ----
+    WebLoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+
+    WebRegisterRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+        verificationCode: { type: string }
+
+    WebLoginResponse:
+      type: object
+      properties:
+        token: { type: string, description: Sa-Token 令牌 }
+        refreshToken: { type: string }
+
+    # ---- common ----
+    ApiError:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data: { type: object, nullable: true }
