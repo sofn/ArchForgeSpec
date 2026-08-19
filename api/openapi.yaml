@@ -204,6 +204,101 @@ paths:
         "200":
           $ref: "#/components/responses/AdminOk"
 
+  /admin/dashboard/metrics:
+    get:
+      tags: [admin]
+      summary: Dashboard counts
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/dashboard/trends:
+    get:
+      tags: [admin]
+      summary: Dashboard trends
+      parameters:
+        - in: query
+          name: days
+          schema: { type: integer, default: 7 }
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/dashboard/recent-activities:
+    get:
+      tags: [admin]
+      summary: Recent article activity
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/dashboard/todo:
+    get:
+      tags: [admin]
+      summary: Dashboard todo aggregates
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/permission-matrix/menus/tree:
+    get:
+      tags: [admin]
+      summary: Permission menu tree
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/permission-matrix/roles/{roleId}/permissions:
+    get:
+      tags: [admin]
+      summary: Role permission ids
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+    put:
+      tags: [admin]
+      summary: Replace role permissions
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/chat/config:
+    get:
+      tags: [admin]
+      summary: LLM config status without the API key
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/chat/sessions:
+    get:
+      tags: [admin]
+      summary: In-memory chat sessions
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+    post:
+      tags: [admin]
+      summary: Create chat session
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+  /admin/chat/sessions/{id}/messages:
+    post:
+      tags: [admin]
+      summary: Send chat message
+      description: SSE events named `delta`, `done`, `error`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: text/event-stream
   /system/dict:
     description: |
       Leftover prefix. Migration backlog — move under `/admin/dict`.
