@@ -1,172 +1,103 @@
-# repos.yaml — ArchForge Project Manifest
-#
-# Machine-readable map of the ArchForge multi-repository project.
-# AI agents and scripts consume this file to discover sibling repositories,
-# their roles, responsibility boundaries, and relationships.
-#
-# Layout convention: all repositories are cloned side by side (flat siblings):
-#   archforge/
-#   ├── ArchForge/        # backend (server-admin :8080 + server-web :8081)
-#   ├── ArchForgeWeb/     # C-end web client
-#   ├── ArchForgeAdmin/   # admin client (vue-pure-admin)
-#   ├── ArchForgeDocs/    # documentation site (VitePress)
-#   └── ArchForgeSpec/    # contracts / architecture / AI context  <- this repository
-#
-# NOTE: this file is derived from the actual source code, not a demo.
-# Technology versions below were read from each repository's build files.
+# Machine-readable ArchForge project map.
+# Sibling clones, no Git submodules. Read this file first from any repo.
 
-schemaVersion: 1
+project: ArchForge
+layout: sibling-repos
+submodules: false
 
-project:
-  id: archforge
-  name: ArchForge
-  description: AI Native Enterprise Application Platform
-  version: 2.0.0
-
-workspace:
-  directory: archforge
-
-repositories:
-
-  - id: core
-    name: ArchForge
-    path: ./ArchForge
-    url: https://github.com/sofn/ArchForge
+repos:
+  - name: ArchForge
+    path: ../ArchForge
     role: backend
-    group: com.lesofn.archforge
-    stack:
-      - Java 25 (preview enabled)
-      - Spring Boot 4.1.0
-      - Gradle (Kotlin DSL)
-      - JPA / Hibernate (PostgreSQL)
-      - Redis (Lettuce) / Redisson
-      - Quartz (JDBC, clustered)
-      - Sa-Token (bearer JWT)
-      - springdoc OpenAPI 3.1
-      - GraalVM native
-    services:
-      - id: server-admin
+    can_modify: [backend]
+    description: Spring Boot services. Implements the contract in this repo.
+    apps:
+      - name: archforge-server-admin
         port: 8080
-        description: Admin REST API
-      - id: server-web
+        consumers: [ArchForgeAdmin]
+      - name: archforge-server-web
         port: 8081
-        description: Consumer web REST API
+        consumers: [ArchForgeWeb]
     modules:
-      - common/common-base
-      - common/common-jpa
-      - common/common-error
-      - infrastructure
-      - dependencies
-      - server-admin
-      - server-web
-      - domain/blog
-      - domain/admin-user
-      - domain/meta-table
-      - starters/arch-forge-redisson-starter
-      - starters/arch-forge-cache-starter
-      - starters/arch-forge-lock-starter
-      - starters/arch-forge-trace-starter
-    can_modify:
-      - api
-      - domain
-      - database
-      - auth
-      - workflow
+      - archforge-common/archforge-common-base
+      - archforge-common/archforge-common-error
+      - archforge-common/archforge-common-jpa
+      - archforge-domain/archforge-admin-user
+      - archforge-domain/archforge-blog
+      - archforge-domain/archforge-meta-table
+      - archforge-infrastructure
+      - archforge-server-admin
+      - archforge-server-web
+      - archforge-cli
+      - archforge-example/archforge-example-task
+      - archforge-starters/archforge-cache-starter
+      - archforge-starters/archforge-lock-starter
+      - archforge-starters/archforge-redisson-starter
+      - archforge-starters/archforge-trace-starter
+      - archforge-dependencies
+    notes:
+      - Canonical backend standard: skills/archforge-project-standard/standard.md
+      - Auth: sa-token (StpAdminUtil / StpWebUtil), not Spring Security JWT
+      - Contract sync: API changes must update ../ArchForgeSpec/api/openapi.yaml
 
-  - id: web
-    name: ArchForgeWeb
-    path: ./ArchForgeWeb
-    url: https://github.com/sofn/ArchForgeWeb
-    role: web-client
-    stack:
-      - Next.js 15 (App Router)
-      - React 19
-      - TypeScript
-      - Tailwind CSS v4
-      - shadcn/ui
-      - next-intl (i18n: en, zh)
-      - pnpm workspaces + Turborepo
-    consumes: server-web
-    can_modify:
-      - ui
-      - client-routing
-      - client-state
+  - name: ArchForgeAdmin
+    path: ../ArchForgeAdmin
+    role: admin-ui
+    can_modify: [admin-ui]
+    description: ArchForge admin console. Consumes server-admin only.
+    stack: Vue 3 + Vite + Element Plus + Pinia (vue-pure-admin based)
+    app:
+      port: 8848
+      api_base: /api   # Vite proxy → http://localhost:8080
+      backend: ArchForge/archforge-server-admin
+      auth: sa-token
+      response: "{code,message,data}"
 
-  - id: admin
-    name: ArchForgeAdmin
-    path: ./ArchForgeAdmin
-    url: https://github.com/sofn/ArchForgeAdmin
-    role: admin-client
-    upstream: true
-    base: vue-pure-admin 7.0
-    stack:
-      - Vue 3.5
-      - Vite 8
-      - TypeScript
-      - Element Plus
-      - Pinia
-      - vue-router 5
-      - vue-i18n
-      - Tailwind CSS v4
-    consumes: server-admin
-    can_modify:
-      - admin-ui
+  - name: ArchForgeWeb
+    path: ../ArchForgeWeb
+    role: web-ui
+    can_modify: [web-ui]
+    description: C-end Next.js client. Consumes server-web only.
+    stack: Next.js + React + Tailwind + shadcn/ui
+    app:
+      port: 3000
+      api_base_env: NEXT_PUBLIC_API_BASE_URL
+      api_base_default: http://localhost:8081
+      backend: ArchForge/archforge-server-web
+      auth: sa-token cookies (token, tokenName, refreshToken)
+      errors: RFC 9457 ProblemDetail
 
-  - id: docs
-    name: ArchForgeDocs
-    path: ./ArchForgeDocs
-    url: https://github.com/sofn/ArchForgeDocs
-    role: documentation
-    stack:
-      - VitePress 1.6
+  - name: ArchForgeDocs
+    path: ../ArchForgeDocs
+    role: docs
+    can_modify: [docs]
+    description: Human documentation site (VitePress).
+
+  - name: ArchForgeSpec
+    path: .
+    role: spec
+    can_modify: [spec, contract]
+    description: Contracts, architecture, enums, specs, AI skills.
     owns:
-      - user-guide
-      - module-docs
-      - deploy-docs
-    can_modify:
-      - documentation
+      - api/openapi.yaml
+      - enums/enums.yaml
+      - specs/
+      - skills/
+      - architecture.md
+      - repos.yaml
 
-  - id: spec
-    name: ArchForgeSpec
-    path: ./ArchForgeSpec
-    url: https://github.com/sofn/ArchForgeSpec
-    role: specification
-    owns:
-      - api-contract
-      - ui-schema
-      - workflow-schema
-      - permission-schema
-      - agent-schema
-      - project-architecture
+ports:
+  server-admin: 8080
+  server-web: 8081
+  admin-ui: 8848
+  web-ui: 3000
 
-relations:
-
-  - from: ArchForgeWeb
-    to: ArchForge
-    type: api-consumer
-    target: server-web
-
-  - from: ArchForgeAdmin
-    to: ArchForge
-    type: api-consumer
-    target: server-admin
-
-  - from: ArchForge
-    to: ArchForgeSpec
-    type: implements
-
-  - from: ArchForgeWeb
-    to: ArchForgeSpec
-    type: conforms
-
-  - from: ArchForgeAdmin
-    to: ArchForgeSpec
-    type: conforms
-
-  - from: ArchForgeDocs
-    to: ArchForge
-    type: documents
-
-  - from: ArchForgeDocs
-    to: ArchForgeSpec
-    type: documents
+contract:
+  openapi: api/openapi.yaml
+  openapi_version: "3.1.0"
+  enums: enums/enums.yaml
+  deleted_paths:
+    - /system/menu
+    - /system/role
+  migration_backlog:
+    - /system/dict

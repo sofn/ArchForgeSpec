@@ -1,0 +1,57 @@
+# Cross-repo enumerations. Backend is the producer; this file is the contract;
+# frontends consume it. See specs/enum-sync.md.
+#
+# Change flow: Java enum → this file → Admin / Web TypeScript constants.
+# Never invent a frontend-only numeric mapping.
+
+enums:
+  StatusEnum:
+    source: archforge-common-base
+    class: com.lesofn.archforge.common.enums.common.StatusEnum
+    dictionary: common.status
+    field: status
+    values:
+      - name: DISABLE
+        value: 0
+        label: 停用
+      - name: ENABLE
+        value: 1
+        label: 正常
+
+  UserStatus:
+    source: archforge-common-base
+    class: com.lesofn.archforge.common.enums.common.UserStatusEnum
+    dictionary: sysUser.status
+    field: sys_user.status
+    values:
+      - name: NORMAL
+        value: 1
+        label: 正常
+      - name: DISABLED
+        value: 2
+        label: 禁用
+      - name: FROZEN
+        value: 3
+        label: 冻结
+
+  MenuTypeEnum:
+    source: archforge-domain/archforge-admin-user
+    class: com.lesofn.archforge.user.api.enums.MenuTypeEnum
+    dictionary: sysMenu.menuType
+    field: sys_menu.menu_type
+    # Canonical backend values. Admin frontend mapping MUST stay aligned
+    # with this table (do not keep vue-pure-admin 0/1/2/3 UI codes).
+    values:
+      - name: DIRECTORY
+        value: 1
+        label: 目录
+      - name: MENU
+        value: 2
+        label: 菜单
+      - name: BUTTON
+        value: 3
+        label: 按钮
+    frontend:
+      repo: ArchForgeAdmin
+      file: src/views/system/menu/utils/enums.ts
+      rule: menuTypeOptions values must equal 1 / 2 / 3 as above

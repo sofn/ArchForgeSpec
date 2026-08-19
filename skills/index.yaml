@@ -1,0 +1,7 @@
+skills:
+  - id: backend-api-design
+    file: backend-api-design.md
+  - id: frontend-page-dev
+    file: frontend-page-dev.md
+  - id: cross-repo-change
+    file: cross-repo-change.md

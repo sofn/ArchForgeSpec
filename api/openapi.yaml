@@ -1,849 +1,543 @@
-# ArchForge Platform API Contract (OpenAPI 3.1)
-#
-# Curated contract view of the ArchForge platform HTTP API.
-# Derived from the backend source code (com.lesofn.archforge).
-#
-# The backend is split into TWO Spring Boot applications, each exposing its own
-# springdoc-generated spec at runtime:
-#   - server-admin  (port 8080)  ->  http://localhost:8080/v3/api-docs
-#   - server-web    (port 8081)  ->  http://localhost:8081/v3/api-docs
-# This file merges both into a single contract. The runtime /v3/api-docs remains
-# the authoritative, machine-generated source; keep this file in sync with it.
-#
-# Auth: Sa-Token, `Authorization: Bearer <JWT>` (token-name Authorization,
-#       token-prefix Bearer). Configured in SwaggerConfig as scheme "bearer".
-#
-# Standard: OpenAPI 3.1.x (compatible with JSON Schema 2020-12). Versioning: SemVer.
-
 openapi: 3.1.0
-
 info:
-  title: ArchForge Platform API
-  version: 1.0.0
-  description: >
-    Cross-repository HTTP API contract for the ArchForge platform.
-    Owned by ArchForgeSpec. Backend group: com.lesofn.archforge.
-    Two backend applications: server-admin (admin API) and server-web (consumer web API).
+  title: ArchForge API
+  version: 0.1.0
+  summary: Stub contract for ArchForge admin and C-end APIs.
+  description: |
+    Two servers, two clients:
+
+    - **Admin** (`server-admin`, port 8080) — consumed by ArchForgeAdmin.
+      Success envelope `{code, message, data}`. See `specs/api-response.md`.
+    - **Web** (`server-web`, port 8081) — consumed by ArchForgeWeb.
+      Errors use RFC 9457 ProblemDetail.
+
+    This file is a **stub**. Paths listed here are the live surface we are
+    willing to document. Do **not** reintroduce deleted `/system/menu` or
+    `/system/role`. Leftover `/system/dict` is a migration backlog item
+    (see `specs/api-path.md`), not a target prefix.
+
+    When an endpoint changes, update this file in the same change.
 
 servers:
   - url: http://localhost:8080
-    description: server-admin (admin API)
+    description: server-admin (ArchForgeAdmin)
   - url: http://localhost:8081
-    description: server-web (consumer web API)
+    description: server-web (ArchForgeWeb)
 
 tags:
-  - name: auth
-    description: 登录认证 (server-admin /auth)
-  - name: blog
-    description: 博客管理 (server-admin /blog)
-  - name: file
-    description: 文件管理 (server-admin /file)
-  - name: meta-table
-    description: 元数据表 (server-admin /meta-table)
-  - name: monitor
-    description: 服务监控 (server-admin /monitor)
-  - name: quartz
-    description: 定时任务 (server-admin /quartz)
-  - name: system
-    description: 系统字典/菜单/角色 (server-admin /system)
-  - name: admin-user
-    description: 用户/部门/角色/菜单/通知/配置/日志管理 (server-admin /admin)
-  - name: web-auth
-    description: 用户端认证 (server-web /web)
-  - name: web-blog
-    description: 用户端博客 (server-web /web)
-  - name: web-dashboard
-    description: 用户端仪表盘 (server-web /web/dashboard)
-  - name: web-file
-    description: 用户端文件 (server-web /web/file)
-  - name: web-user
-    description: 用户端用户 (server-web /web/user)
+  - name: admin-auth
+    description: Admin sa-token login on server-admin
+  - name: admin
+    description: Admin resources under /admin/*
+  - name: admin-legacy
+    description: Admin paths still missing the /admin prefix
+  - name: web
+    description: C-end resources under /web/* on server-web
 
 security:
-  - bearerAuth: []
+  - saToken: []
 
 paths:
-  # ============ server-admin /auth ============
-  /auth/getConfig:
-    get:
-      tags: [auth]
-      summary: 获取系统配置
-      operationId: getLoginConfig
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/LoginConfigResponse" }
-
-  /auth/captchaImage:
-    get:
-      tags: [auth]
-      summary: 获取验证码图片
-      operationId: getCaptchaImage
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/CaptchaResponse" }
-
   /auth/login:
     post:
-      tags: [auth]
-      summary: 登录
-      operationId: login
+      tags: [admin-auth]
+      summary: Admin login
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/LoginRequest" }
+            schema:
+              $ref: "#/components/schemas/AdminLoginRequest"
       responses:
         "200":
-          description: OK
+          description: Wrapped login payload
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/LoginResponse" }
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
   /auth/logout:
     post:
-      tags: [auth]
-      summary: 退出登录
-      operationId: logout
+      tags: [admin-auth]
+      summary: Admin logout
       responses:
         "200":
-          description: OK
+          description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
   /auth/refresh-token:
     post:
-      tags: [auth]
-      summary: 刷新令牌
-      operationId: refreshToken
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/RefreshTokenRequest" }
+      tags: [admin-auth]
+      summary: Refresh admin token
+      security: []
       responses:
         "200":
-          description: OK
+          description: Wrapped token pair
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/RefreshTokenResponse" }
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
+
+  /auth/getConfig:
+    get:
+      tags: [admin-auth]
+      summary: Public admin login config
+      security: []
+      responses:
+        "200":
+          description: Wrapped config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
+
+  /auth/captchaImage:
+    get:
+      tags: [admin-auth]
+      summary: Captcha image payload
+      security: []
+      responses:
+        "200":
+          description: Wrapped captcha
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
   /auth/getLoginUserInfo:
     get:
-      tags: [auth]
-      summary: 获取当前登录用户信息
-      operationId: getLoginUserInfo
+      tags: [admin-auth]
+      summary: Current admin user
       responses:
         "200":
-          description: OK
+          description: Wrapped user
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/CurrentLoginUserResponse" }
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
   /auth/getRouters:
     get:
-      tags: [auth]
-      summary: 获取用户菜单路由
-      operationId: getRouters
+      tags: [admin-auth]
+      summary: Dynamic admin routes
       responses:
         "200":
-          description: OK
+          description: Wrapped router tree
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: "#/components/schemas/RouterDTO" }
+                $ref: "#/components/schemas/AdminEnvelope"
 
-  /auth/get-async-routes:
-    get:
-      tags: [auth]
-      summary: 获取异步路由 (兼容 vue-pure-admin)
-      operationId: getAsyncRoutes
+  /admin/user:
+    post:
+      tags: [admin]
+      summary: Admin user page
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items: { $ref: "#/components/schemas/RouterDTO" }
+          $ref: "#/components/responses/AdminOk"
 
-  # ============ server-admin /blog ============
-  /blog/article/create:
+  /admin/role:
     post:
-      tags: [blog]
-      summary: 创建文章
-      operationId: createArticle
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Admin role page
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/article/update:
-    put:
-      tags: [blog]
-      summary: 更新文章
-      operationId: updateArticle
-      responses: { "200": { description: OK } }
-
-  /blog/article/delete:
+  /admin/menu:
     post:
-      tags: [blog]
-      summary: 删除文章
-      operationId: deleteArticle
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Admin menu list
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/article/{id}/publish:
+  /admin/dept:
     post:
-      tags: [blog]
-      summary: 发布文章
-      operationId: publishArticle
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Admin dept tree
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/article/{id}/offline:
+  /admin/config:
     post:
-      tags: [blog]
-      summary: 下架文章
-      operationId: offlineArticle
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: System config page
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/category/create:
+  /admin/notice:
     post:
-      tags: [blog]
-      summary: 创建分类
-      operationId: createBlogCategory
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Notice page
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/category/update:
-    put:
-      tags: [blog]
-      summary: 更新分类
-      operationId: updateBlogCategory
-      responses: { "200": { description: OK } }
-
-  /blog/category/delete:
+  /admin/operation-log:
     post:
-      tags: [blog]
-      summary: 删除分类
-      operationId: deleteBlogCategory
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Operation log page
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /blog/file/upload:
+  /admin/login-log:
     post:
-      tags: [blog]
-      summary: 上传博客文件
-      operationId: uploadBlogFile
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Login log page
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  # ============ server-admin /file ============
-  /file/upload:
-    post:
-      tags: [file]
-      summary: 上传文件
-      operationId: uploadFile
-      responses: { "200": { description: OK } }
-
-  /file/upload-image:
-    post:
-      tags: [file]
-      summary: 上传图片
-      operationId: uploadImage
-      responses: { "200": { description: OK } }
-
-  /file/download/{fileId}:
+  /admin/server:
     get:
-      tags: [file]
-      summary: 下载文件
-      operationId: downloadFile
-      parameters:
-        - { name: fileId, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
+      tags: [admin]
+      summary: Server metrics
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /file/{fileId}:
-    delete:
-      tags: [file]
-      summary: 删除文件
-      operationId: deleteFile
-      parameters:
-        - { name: fileId, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  # ============ server-admin /meta-table ============
-  /meta-table/create:
+  /system/dict:
+    description: |
+      Leftover prefix. Migration backlog — move under `/admin/dict`.
+      Not a template for new APIs. `/system/menu` and `/system/role` are gone
+      and must not be re-added.
     post:
-      tags: [meta-table]
-      summary: 创建元数据表
-      operationId: createMetaTable
-      responses: { "200": { description: OK } }
+      tags: [admin-legacy]
+      summary: Dictionary type page (legacy prefix)
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /meta-table/{id}:
+  /blog/article:
+    post:
+      tags: [admin-legacy]
+      summary: Blog article admin (prefix should become /admin/blog)
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+
+  /blog/category:
+    post:
+      tags: [admin-legacy]
+      summary: Blog category admin
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+
+  /meta-table:
+    post:
+      tags: [admin-legacy]
+      summary: Meta table admin
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+
+  /file:
+    post:
+      tags: [admin-legacy]
+      summary: Admin file API
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
+
+  /monitor:
     get:
-      tags: [meta-table]
-      summary: 获取元数据表
-      operationId: getMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    put:
-      tags: [meta-table]
-      summary: 更新元数据表
-      operationId: updateMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    delete:
-      tags: [meta-table]
-      summary: 删除元数据表
-      operationId: deleteMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
+      tags: [admin-legacy]
+      summary: Monitor API
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /meta-table/{id}/generate:
+  /quartz:
     post:
-      tags: [meta-table]
-      summary: 生成元数据表代码
-      operationId: generateMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
+      tags: [admin-legacy]
+      summary: Quartz job admin
+      responses:
+        "200":
+          $ref: "#/components/responses/AdminOk"
 
-  /meta-table/{id}/migrations:
-    get:
-      tags: [meta-table]
-      summary: 获取迁移记录
-      operationId: getMetaTableMigrations
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /meta-table/{id}/export:
-    get:
-      tags: [meta-table]
-      summary: 导出元数据表
-      operationId: exportMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /meta-table/{id}/import:
-    post:
-      tags: [meta-table]
-      summary: 导入元数据表
-      operationId: importMetaTable
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  # ============ server-admin /monitor ============
-  /monitor/online-logs:
-    post:
-      tags: [monitor]
-      summary: 在线日志
-      operationId: monitorOnlineLogs
-      responses: { "200": { description: OK } }
-
-  /monitor/cache-info:
-    get:
-      tags: [monitor]
-      summary: 缓存信息
-      operationId: monitorCacheInfo
-      responses: { "200": { description: OK } }
-
-  # ============ server-admin /quartz ============
-  /quartz/add:
-    post:
-      tags: [quartz]
-      summary: 新增定时任务
-      operationId: addQuartzJob
-      responses: { "200": { description: OK } }
-
-  /quartz/update/{id}:
-    put:
-      tags: [quartz]
-      summary: 更新定时任务
-      operationId: updateQuartzJob
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /quartz/{id}:
-    delete:
-      tags: [quartz]
-      summary: 删除定时任务
-      operationId: deleteQuartzJob
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /quartz/pause/{id}:
-    post:
-      tags: [quartz]
-      summary: 暂停定时任务
-      operationId: pauseQuartzJob
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /quartz/resume/{id}:
-    post:
-      tags: [quartz]
-      summary: 恢复定时任务
-      operationId: resumeQuartzJob
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /quartz/run/{id}:
-    post:
-      tags: [quartz]
-      summary: 立即执行定时任务
-      operationId: runQuartzJob
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /quartz/log:
-    get:
-      tags: [quartz]
-      summary: 任务执行日志
-      operationId: quartzJobLog
-      responses: { "200": { description: OK } }
-
-  /quartz/validate-cron:
-    post:
-      tags: [quartz]
-      summary: 校验 cron 表达式
-      operationId: validateCron
-      responses: { "200": { description: OK } }
-
-  # ============ server-admin /system ============
-  /system/dict/type/create:
-    post:
-      tags: [system]
-      summary: 创建字典类型
-      operationId: createDictType
-      responses: { "200": { description: OK } }
-
-  /system/dict/type/{dictCode}:
-    get:
-      tags: [system]
-      summary: 获取字典类型
-      operationId: getDictType
-      parameters:
-        - { name: dictCode, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /system/menu/tree:
-    get:
-      tags: [system]
-      summary: 获取菜单树
-      operationId: getMenuTree
-      responses: { "200": { description: OK } }
-
-  /system/menu/{id}:
-    get:
-      tags: [system]
-      summary: 获取菜单
-      operationId: getMenu
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    put:
-      tags: [system]
-      summary: 更新菜单
-      operationId: updateMenu
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    delete:
-      tags: [system]
-      summary: 删除菜单
-      operationId: deleteMenu
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /system/role/all:
-    get:
-      tags: [system]
-      summary: 获取全部角色
-      operationId: getAllRoles
-      responses: { "200": { description: OK } }
-
-  /system/role/{id}:
-    get:
-      tags: [system]
-      summary: 获取角色
-      operationId: getRole
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    put:
-      tags: [system]
-      summary: 更新角色
-      operationId: updateRole
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-    delete:
-      tags: [system]
-      summary: 删除角色
-      operationId: deleteRole
-      parameters:
-        - { name: id, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  # ============ server-admin /admin ============
-  /admin/user/create:
-    post:
-      tags: [admin-user]
-      summary: 创建用户
-      operationId: createUser
-      responses: { "200": { description: OK } }
-
-  /admin/user/update:
-    put:
-      tags: [admin-user]
-      summary: 更新用户
-      operationId: updateUser
-      responses: { "200": { description: OK } }
-
-  /admin/user/delete:
-    post:
-      tags: [admin-user]
-      summary: 删除用户
-      operationId: deleteUser
-      responses: { "200": { description: OK } }
-
-  /admin/user/reset-password:
-    post:
-      tags: [admin-user]
-      summary: 重置用户密码
-      operationId: resetUserPassword
-      responses: { "200": { description: OK } }
-
-  /admin/user/assign-role:
-    post:
-      tags: [admin-user]
-      summary: 分配角色
-      operationId: assignUserRole
-      responses: { "200": { description: OK } }
-
-  /admin/user/export:
-    get:
-      tags: [admin-user]
-      summary: 导出用户
-      operationId: exportUsers
-      responses: { "200": { description: OK } }
-
-  /admin/dept/create:
-    post:
-      tags: [admin-user]
-      summary: 创建部门
-      operationId: createDept
-      responses: { "200": { description: OK } }
-
-  /admin/role/all:
-    get:
-      tags: [admin-user]
-      summary: 获取全部角色
-      operationId: adminGetAllRoles
-      responses: { "200": { description: OK } }
-
-  /admin/role/create:
-    post:
-      tags: [admin-user]
-      summary: 创建角色
-      operationId: adminCreateRole
-      responses: { "200": { description: OK } }
-
-  /admin/menu/create:
-    post:
-      tags: [admin-user]
-      summary: 创建菜单
-      operationId: adminCreateMenu
-      responses: { "200": { description: OK } }
-
-  /admin/notice/create:
-    post:
-      tags: [admin-user]
-      summary: 创建通知
-      operationId: createNotice
-      responses: { "200": { description: OK } }
-
-  /admin/config/create:
-    post:
-      tags: [admin-user]
-      summary: 创建参数配置
-      operationId: createConfig
-      responses: { "200": { description: OK } }
-
-  /admin/login-log/clear:
-    post:
-      tags: [admin-user]
-      summary: 清空登录日志
-      operationId: clearLoginLog
-      responses: { "200": { description: OK } }
-
-  /admin/operation-log/clear:
-    post:
-      tags: [admin-user]
-      summary: 清空操作日志
-      operationId: clearOperationLog
-      responses: { "200": { description: OK } }
-
-  # ============ server-web /web ============
   /web/login:
     post:
-      tags: [web-auth]
-      summary: 用户登录
-      operationId: webLogin
+      tags: [web]
+      summary: C-end login
+      security: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/WebLoginRequest" }
+            schema:
+              $ref: "#/components/schemas/WebLoginRequest"
       responses:
         "200":
-          description: OK
+          description: Wrapped login payload
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/WebLoginResponse" }
-
-  /web/register:
-    post:
-      tags: [web-auth]
-      summary: 用户注册
-      operationId: webRegister
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/WebRegisterRequest" }
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/WebLoginResponse" }
-
-  /web/refresh-token:
-    post:
-      tags: [web-auth]
-      summary: 刷新令牌
-      operationId: webRefreshToken
-      responses: { "200": { description: OK } }
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
+        "401":
+          $ref: "#/components/responses/WebProblem"
 
   /web/logout:
     post:
-      tags: [web-auth]
-      summary: 退出登录
-      operationId: webLogout
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: C-end logout
+      responses:
+        "200":
+          description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
-  /web/verification-code/send:
+  /web/refresh-token:
     post:
-      tags: [web-auth]
-      summary: 发送验证码
-      operationId: webSendVerificationCode
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Refresh C-end token
+      security: []
+      responses:
+        "200":
+          description: Wrapped login payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
+        "401":
+          $ref: "#/components/responses/WebProblem"
+
+  /web/register:
+    post:
+      tags: [web]
+      summary: Register by email
+      security: []
+      responses:
+        "200":
+          description: Wrapped login payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminEnvelope"
 
   /web/forgot-password:
     post:
-      tags: [web-auth]
-      summary: 忘记密码
-      operationId: webForgotPassword
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Send reset-password code
+      security: []
+      responses:
+        "200":
+          description: Wrapped boolean
 
   /web/reset-password:
     post:
-      tags: [web-auth]
-      summary: 重置密码
-      operationId: webResetPassword
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Reset password by email code
+      security: []
+      responses:
+        "200":
+          description: Wrapped boolean
 
-  /web/categories:
-    get:
-      tags: [web-blog]
-      summary: 获取文章分类
-      operationId: webCategories
-      responses: { "200": { description: OK } }
-
-  /web/articles:
-    get:
-      tags: [web-blog]
-      summary: 获取文章列表
-      operationId: webArticles
-      responses: { "200": { description: OK } }
+  /web/verification-code/send:
     post:
-      tags: [web-blog]
-      summary: 发布文章
-      operationId: webCreateArticle
-      responses: { "200": { description: OK } }
-
-  /web/articles/{slug}:
-    get:
-      tags: [web-blog]
-      summary: 获取文章详情
-      operationId: webArticleDetail
-      parameters:
-        - { name: slug, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /web/user/articles:
-    get:
-      tags: [web-blog]
-      summary: 获取当前用户文章
-      operationId: webUserArticles
-      responses: { "200": { description: OK } }
-
-  /web/dashboard/metrics:
-    get:
-      tags: [web-dashboard]
-      summary: 仪表盘指标
-      operationId: webDashboardMetrics
-      responses: { "200": { description: OK } }
-
-  /web/file/upload:
-    post:
-      tags: [web-file]
-      summary: 上传文件
-      operationId: webUploadFile
-      responses: { "200": { description: OK } }
-
-  /web/file/{fileId}:
-    get:
-      tags: [web-file]
-      summary: 获取文件
-      operationId: webGetFile
-      parameters:
-        - { name: fileId, in: path, required: true, schema: { type: string } }
-      responses: { "200": { description: OK } }
-
-  /web/notices:
-    get:
-      tags: [web-auth]
-      summary: 获取通知列表
-      operationId: webNotices
-      responses: { "200": { description: OK } }
-
-  /web/operation-logs:
-    get:
-      tags: [web-auth]
-      summary: 获取操作日志
-      operationId: webOperationLogs
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Send email verification code
+      security: []
+      responses:
+        "200":
+          description: Wrapped boolean
 
   /web/user/profile:
     get:
-      tags: [web-user]
-      summary: 获取个人资料
-      operationId: webUserProfile
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Current C-end profile
+      responses:
+        "200":
+          description: Wrapped profile
+        "401":
+          $ref: "#/components/responses/WebProblem"
 
   /web/user/change-password:
     post:
-      tags: [web-user]
-      summary: 修改密码
-      operationId: webChangePassword
-      responses: { "200": { description: OK } }
+      tags: [web]
+      summary: Change password while logged in
+      responses:
+        "200":
+          description: Wrapped boolean
+        "401":
+          $ref: "#/components/responses/WebProblem"
+
+  /web/dashboard/metrics:
+    get:
+      tags: [web]
+      summary: C-end dashboard metrics
+      responses:
+        "200":
+          description: Wrapped metrics
+
+  /web/notices:
+    get:
+      tags: [web]
+      summary: Latest notices
+      responses:
+        "200":
+          description: Wrapped notice list
+
+  /web/operation-logs:
+    get:
+      tags: [web]
+      summary: Recent operation logs
+      responses:
+        "200":
+          description: Wrapped log list
+
+  /web/categories:
+    get:
+      tags: [web]
+      summary: Visible article categories
+      security: []
+      responses:
+        "200":
+          description: Wrapped category list
+
+  /web/articles:
+    get:
+      tags: [web]
+      summary: Published articles
+      security: []
+      responses:
+        "200":
+          description: Wrapped page
+    post:
+      tags: [web]
+      summary: Create article
+      responses:
+        "200":
+          description: Wrapped article id
+        "401":
+          $ref: "#/components/responses/WebProblem"
+
+  /web/articles/{slug}:
+    get:
+      tags: [web]
+      summary: Published article by slug
+      security: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wrapped article
+
+  /web/file/upload:
+    post:
+      tags: [web]
+      summary: Upload C-end file
+      responses:
+        "200":
+          description: Wrapped file payload
+        "401":
+          $ref: "#/components/responses/WebProblem"
+
+  /web/file/{fileId}:
+    get:
+      tags: [web]
+      summary: Download C-end file
+      security: []
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Binary
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
 
 components:
   securitySchemes:
-    bearerAuth:
+    saToken:
       type: http
       scheme: bearer
-      bearerFormat: JWT
-      description: Sa-Token 认证，`Authorization: Bearer <JWT>`
+      description: sa-token value. Header `Authorization: Bearer <token>`.
+
+  responses:
+    AdminOk:
+      description: Admin envelope
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AdminEnvelope"
+    WebProblem:
+      description: RFC 9457 Problem Detail (C-end errors)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
 
   schemas:
-    # ---- admin auth ----
-    LoginRequest:
+    AdminEnvelope:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          description: 0 means success
+        message:
+          type: string
+        data: {}
+
+    AdminLoginRequest:
       type: object
       required: [username, password]
       properties:
-        username: { type: string }
-        password: { type: string }
-        captcha: { type: string, description: 验证码 }
-        uuid: { type: string, description: 验证码标识 }
+        username:
+          type: string
+        password:
+          type: string
+        captchaCode:
+          type: string
+        captchaKey:
+          type: string
 
-    LoginResponse:
-      type: object
-      properties:
-        token: { type: string, description: Sa-Token 令牌 }
-        user: { $ref: "#/components/schemas/CurrentLoginUserResponse" }
-
-    LoginConfigResponse:
-      type: object
-      properties:
-        captchaEnabled: { type: boolean, description: 是否启用验证码 }
-
-    CaptchaResponse:
-      type: object
-      properties:
-        uuid: { type: string }
-        img: { type: string, description: Base64 验证码图片 }
-
-    RefreshTokenRequest:
-      type: object
-      required: [refreshToken]
-      properties:
-        refreshToken: { type: string }
-
-    RefreshTokenResponse:
-      type: object
-      properties:
-        token: { type: string }
-
-    CurrentLoginUserResponse:
-      type: object
-      properties:
-        userId: { type: string }
-        username: { type: string }
-        nickname: { type: string }
-        roles: { type: array, items: { type: string } }
-        permissions: { type: array, items: { type: string } }
-
-    RouterDTO:
-      type: object
-      properties:
-        path: { type: string }
-        name: { type: string }
-        component: { type: string }
-        meta: { type: object, additionalProperties: true }
-        children: { type: array, items: { $ref: "#/components/schemas/RouterDTO" } }
-
-    # ---- web auth ----
     WebLoginRequest:
       type: object
       required: [username, password]
       properties:
-        username: { type: string }
-        password: { type: string }
+        username:
+          type: string
+        password:
+          type: string
 
-    WebRegisterRequest:
-      type: object
-      required: [username, password]
-      properties:
-        username: { type: string }
-        password: { type: string }
-        verificationCode: { type: string }
-
-    WebLoginResponse:
+    ProblemDetail:
       type: object
       properties:
-        token: { type: string, description: Sa-Token 令牌 }
-        refreshToken: { type: string }
-
-    # ---- common ----
-    ApiError:
-      type: object
-      properties:
-        code: { type: string }
-        message: { type: string }
-        data: { type: object, nullable: true }
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        code:
+          type: integer
+          description: Optional ArchForge error code property

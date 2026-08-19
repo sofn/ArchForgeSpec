@@ -1,64 +1,46 @@
-# ArchForge Project
+# ArchForgeSpec
 
-This repository is part of the ArchForge multi-repository project.
+Contracts, architecture, and AI context for the **ArchForge** multi-repo project.
 
-`ArchForgeSpec` is the project specification repository:
+This repository is the source of truth for:
 
-- **Project map** — machine-readable manifest of all repositories (`repos.yaml`)
-- **Architecture** — cross-repository architecture documentation (`architecture.md`)
-- **API contract** — OpenAPI 3.1 (`api/openapi.yaml`)
-- **Data / DSL schemas** — JSON Schema 2020-12 (`schemas/`)
-- **AI context** — `AGENTS.md`
-- **Bootstrap** — workspace setup scripts (`scripts/`)
+- the five-repo map (`repos.yaml`, `architecture.md`)
+- the public API contract (`api/openapi.yaml`)
+- shared enumerations (`enums/enums.yaml`)
+- cross-repo specs (`specs/`)
+- agent skills (`skills/`)
 
-It intentionally does **not** publish SDKs, generators, or runtimes (out of scope for now).
-User, module, and deployment documentation lives in the `ArchForgeDocs` repository.
+It does **not** contain application code. Clone it next to `ArchForge`, `ArchForgeAdmin`, `ArchForgeWeb`, and `ArchForgeDocs`.
 
-## Related Repositories
-
-- Core (backend): https://github.com/sofn/ArchForge
-- Web client: https://github.com/sofn/ArchForgeWeb
-- Admin client: https://github.com/sofn/ArchForgeAdmin
-- Documentation: https://github.com/sofn/ArchForgeDocs
-- Spec (this repo): https://github.com/sofn/ArchForgeSpec
-
-For cross-repository architecture and contracts, see this repository (`ArchForgeSpec`).
-For product documentation, see `ArchForgeDocs`.
-
-## Workspace Layout
-
-All five repositories are independent Git repositories cloned side by side:
+## Quick map
 
 ```
 archforge/
-├── ArchForge/          # backend (server-admin :8080 + server-web :8081)
-├── ArchForgeWeb/       # C-end web client (Next.js)
-├── ArchForgeAdmin/     # admin client (vue-pure-admin)
-├── ArchForgeDocs/      # documentation site (VitePress)
-└── ArchForgeSpec/      # spec / contracts / AI context
+├── ArchForge/          # backend: server-admin :8080 + server-web :8081
+├── ArchForgeAdmin/     # admin UI (Vue) — :8848 → server-admin
+├── ArchForgeWeb/       # C-end Next.js — :3000 → server-web
+├── ArchForgeDocs/      # VitePress site
+└── ArchForgeSpec/      # this repo
 ```
 
-No parent repository. No Git submodules. Relationships are described by
-[`repos.yaml`](repos.yaml).
+Start here:
 
-## Quick Start
+| Need | File |
+|------|------|
+| Machine-readable repo/module map | [`repos.yaml`](repos.yaml) |
+| Human architecture + ports | [`architecture.md`](architecture.md) |
+| HTTP contract | [`api/openapi.yaml`](api/openapi.yaml) |
+| Shared enums | [`enums/enums.yaml`](enums/enums.yaml) |
+| Specs index | [`architecture.md`](architecture.md#specs) |
+| Agent skills | [`skills/index.yaml`](skills/index.yaml) |
 
-```bash
-git clone https://github.com/sofn/ArchForgeSpec
-cd ArchForgeSpec
-./scripts/bootstrap.sh         # clone or update sibling repositories
-./scripts/check-workspace.sh  # verify workspace layout
-```
+## Rules
 
-## Standards
+1. If an API, enum, or path does not fit a client, change this repo first.
+2. Do not invent deleted endpoints. `/system/menu` and `/system/role` are **not** in the contract.
+3. Backend coding standard stays next to backend code. This repo only [points to it](specs/backend-standard.md).
+4. Never introduce Git submodules.
 
-| Concern         | Standard            |
-|-----------------|---------------------|
-| HTTP API        | OpenAPI 3.1.x       |
-| Data structures | JSON Schema 2020-12 |
-| Versioning      | SemVer              |
-| Repo guidance   | AGENTS.md / README  |
+## License
 
-## AI Agents
-
-See [AGENTS.md](AGENTS.md) for the AI collaboration entrypoint.
+MIT
