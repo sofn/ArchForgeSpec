@@ -34,6 +34,15 @@ Start here:
 | Specs index | [`architecture.md`](architecture.md#specs) |
 | Agent skills | [`skills/index.yaml`](skills/index.yaml) |
 
+## Ports
+
+| Process | Port |
+|---------|------|
+| `archforge-server-admin` | 8080 |
+| `archforge-server-web` | 8081 |
+| ArchForgeAdmin (Vite) | 8848 |
+| ArchForgeWeb (Next.js) | 3000 |
+
 ## Rules
 
 1. If an API, enum, or path does not fit a client, change this repo first.
