@@ -21,15 +21,18 @@ Backend Java enum changes
 
 ## MenuTypeEnum
 
-Canonical **backend** values (this is the contract):
+Canonical **backend** values:
 
 | Value | Name | Meaning |
 |------:|------|---------|
-| 1 | DIRECTORY | 目录 |
-| 2 | MENU | 菜单 |
-| 3 | BUTTON | 按钮 |
+| 1 | MENU | 页面 |
+| 2 | CATALOG | 目录 |
+| 3 | IFRAME | 内嵌 iframe |
+| 4 | OUTSIDE_LINK_REDIRECT | 外链跳转 |
 
-Admin `src/views/system/menu/utils/enums.ts` (`menuTypeOptions`) **must stay aligned** with these values. Do not keep a separate 0/1/2/3 UI mapping.
+**Buttons are not a `menu_type`.** They are `sys_menu.is_button = 1`. Admin must not keep vue-pure-admin `0/1/2/3` UI codes.
+
+Admin `src/views/system/menu/utils/enums.ts` (`menuTypeOptions`) **must stay aligned** with 1/2/3/4. Use `isButton` for button rows and `menuTypeToRouterMeta()` for iframe / outside-link `frameSrc`.
 
 ## Other registered enums
 

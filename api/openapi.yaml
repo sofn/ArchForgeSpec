@@ -517,6 +517,16 @@ paths:
         "401":
           $ref: "#/components/responses/WebProblem"
 
+  /web/user/articles:
+    get:
+      tags: [web]
+      summary: Current user's articles
+      responses:
+        "200":
+          description: Wrapped page
+        "401":
+          $ref: "#/components/responses/WebProblem"
+
   /web/articles/{slug}:
     get:
       tags: [web]

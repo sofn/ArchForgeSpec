@@ -31,7 +31,7 @@ Start here:
 | Human architecture + ports | [`architecture.md`](architecture.md) |
 | HTTP contract | [`api/openapi.yaml`](api/openapi.yaml) |
 | Shared enums | [`enums/enums.yaml`](enums/enums.yaml) |
-| Specs index | [`architecture.md`](architecture.md#specs) |
+| Specs index | [`specs/api-path.md`](specs/api-path.md), [`specs/security.md`](specs/security.md), [`specs/enum-sync.md`](specs/enum-sync.md) |
 | Agent skills | [`skills/index.yaml`](skills/index.yaml) |
 
 ## Ports

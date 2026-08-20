@@ -53,10 +53,11 @@ Required on login, register, verification-code, password-reset. Exceeded → `Sy
 
 ## XssFilter
 
-Incoming HTML/script in request parameters and JSON strings must be sanitized before persistence (XSS filter / allow-list).
+Incoming HTML/script in query/header values is escaped (`<` / `>` only). Do not encode parentheses or apostrophes.
 
 - Admin rich text and C-end Markdown are stored, not executed as HTML, unless explicitly sanitized on render.
 - Never persist raw `<script>` from user input.
+- C-end uploads (`POST /web/file/upload`) must reuse shared `FileUploadValidator`, reject SVG/HTML, rate-limit, and serve non-bitmap files as `attachment`.
 
 ## CORS
 

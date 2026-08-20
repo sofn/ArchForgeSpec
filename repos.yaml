@@ -58,7 +58,7 @@ repos:
     role: web-ui
     can_modify: [web-ui]
     description: C-end Next.js client. Consumes server-web only.
-    stack: Next.js 16.2.12 + React 19 + Tailwind + shadcn/ui
+    stack: Next.js 16.x + React 19 + Tailwind + shadcn/ui
     app:
       port: 3000
       api_base_env: NEXT_PUBLIC_API_BASE_URL

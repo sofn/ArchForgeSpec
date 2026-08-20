@@ -23,3 +23,10 @@ skills:
       - a change spans more than one repository
       - contract, enum, or path prefix changes
     repos: [ArchForgeSpec, ArchForge, ArchForgeAdmin, ArchForgeWeb]
+
+  - id: backend-standard
+    file: ../specs/backend-standard.md
+    when:
+      - writing or reviewing ArchForge Java code
+      - applying backend conventions
+    repos: [ArchForge]

@@ -39,19 +39,21 @@ enums:
     class: com.lesofn.archforge.user.api.enums.MenuTypeEnum
     dictionary: sysMenu.menuType
     field: sys_menu.menu_type
-    # Canonical backend values. Admin frontend mapping MUST stay aligned
-    # with this table (do not keep vue-pure-admin 0/1/2/3 UI codes).
+    # Canonical backend values. Buttons are NOT a menuType; they use is_button.
     values:
-      - name: DIRECTORY
-        value: 1
-        label: 目录
       - name: MENU
+        value: 1
+        label: 页面
+      - name: CATALOG
         value: 2
-        label: 菜单
-      - name: BUTTON
+        label: 目录
+      - name: IFRAME
         value: 3
-        label: 按钮
+        label: 内嵌Iframe
+      - name: OUTSIDE_LINK_REDIRECT
+        value: 4
+        label: 外链跳转
     frontend:
       repo: ArchForgeAdmin
       file: src/views/system/menu/utils/enums.ts
-      rule: menuTypeOptions values must equal 1 / 2 / 3 as above
+      rule: menuTypeOptions values must equal 1 / 2 / 3 / 4; buttons use isButton

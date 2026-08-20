@@ -30,6 +30,16 @@ New endpoints go under `/admin/{resource}` or `/web/{resource}`. Do not add a th
 /admin/operation-log
 /admin/login-log
 /admin/server
+/admin/dashboard/metrics
+/admin/dashboard/trends
+/admin/dashboard/recent-activities
+/admin/dashboard/todo
+/admin/chat/config
+/admin/chat/sessions
+/admin/chat/sessions/{id}
+/admin/chat/sessions/{id}/messages
+/admin/permission-matrix/menus/tree
+/admin/permission-matrix/roles/{roleId}/permissions
 ```
 
 Admin paths that still lack `/admin` (legacy, migrate when touched):
@@ -79,8 +89,9 @@ Dictionary admin still uses the leftover `/system` prefix. Move to `/admin/dict`
 /web/categories
 /web/articles
 /web/articles/{slug}
-/web/file
+/web/user/articles
 /web/file/upload
+/web/file/{fileId}
 ```
 
 See [api/openapi.yaml](../api/openapi.yaml).

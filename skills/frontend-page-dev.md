@@ -14,7 +14,7 @@ Do not call the other server.
 ## Contract first
 
 1. Read [`../api/openapi.yaml`](../api/openapi.yaml). If the endpoint is missing, stop and raise the change in ArchForgeSpec / ArchForge.
-2. Shared enums come from [`../enums/enums.yaml`](../enums/enums.yaml). Align Admin `menuType` with backend 1/2/3.
+2. Shared enums come from [`../enums/enums.yaml`](../enums/enums.yaml). Align Admin `menuType` with backend 1/2/3/4; buttons use `isButton`.
 
 ## Admin
 
