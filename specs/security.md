@@ -81,3 +81,17 @@ Do **not** commit secrets. Use environment / profile files:
 | Tokens | sa-token timeout / cookie flags |
 
 Local templates stay as `.env.example` / `application-*.yaml.example`. Production values come from the environment, never from git.
+
+Production must inject `ARCH_FORGE_RSA_PRIVATE_KEY` and `DB_PASSWORD`. Missing RSA in `prod` fails fast at startup. Docker Compose files require `${DB_PASSWORD:?…}` / `${JWT_SECRET:?…}` with no baked-in defaults.
+
+## Actuator
+
+Keep the exposure allow-list small.
+
+| Profile | `management.endpoints.web.exposure.include` |
+|---------|-----------------------------------------------|
+| admin default | `health,info,metrics,prometheus` |
+| admin prod | `health,info` |
+| web | `health,info` |
+
+Do not expose `env`, `beans`, `heapdump`, or `mappings` without an explicit Spec change.

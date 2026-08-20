@@ -24,6 +24,8 @@ jobs:
           assert "name: MENU" in text and "value: 1" in text
           assert "name: CATALOG" in text
           assert "name: BUTTON" not in text.split("MenuTypeEnum:",1)[1].split("frontend:",1)[0]
+          for name in ("BlogArticleStatus", "NoticeTypeEnum", "NoticeStatusEnum", "GenderEnum", "OperationStatusEnum", "LoginStatusEnum"):
+              assert name in text, name
           print("MenuTypeEnum contract ok")
           PY
       - name: Check live paths listed
@@ -33,4 +35,7 @@ jobs:
           grep -q "/web/user/articles" specs/api-path.md
           grep -q "/web/user/articles" api/openapi.yaml
           grep -q "CHAT_AI" specs/error-codes.md
+          grep -q "/admin/user/create" api/openapi.yaml
+          grep -q "/admin/menu/create" api/openapi.yaml
+          grep -q "/blog/article/create" api/openapi.yaml
           echo paths ok
