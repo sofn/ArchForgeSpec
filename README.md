@@ -1,6 +1,9 @@
 # ArchForgeSpec
 
-Contracts, architecture, and AI context for the **ArchForge** multi-repo project.
+[![CI](https://github.com/sofn/ArchForgeSpec/actions/workflows/ci.yml/badge.svg)](https://github.com/sofn/ArchForgeSpec/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+**The constitution an AI agent reads first.** Contracts, architecture, and AI context for the ArchForge multi-repo project — not application code.
 
 This repository is the source of truth for:
 
@@ -10,7 +13,9 @@ This repository is the source of truth for:
 - cross-repo specs (`specs/`)
 - agent skills (`skills/`)
 
-It does **not** contain application code. Clone it next to `ArchForge`, `ArchForgeAdmin`, `ArchForgeWeb`, and `ArchForgeDocs`.
+Clone it next to `ArchForge`, `ArchForgeAdmin`, `ArchForgeWeb`, and `ArchForgeDocs`.
+
+Docs: [https://archforge.lesofn.com](https://archforge.lesofn.com) · [中文](./README.zh-CN.md)
 
 ## Quick map
 
