@@ -16,8 +16,19 @@ Backend Java enum changes
 
 1. Change the Java enum (and dictionary annotation if any).
 2. Update `enums/enums.yaml` in the same pull request / commit series.
-3. Update the frontend mapping that renders that field.
-4. Do not ship a backend value the UI cannot name.
+3. Run `npm ci && node scripts/gen-enums.mjs` from this repo — it regenerates
+   `ArchForgeAdmin/src/types/enums.generated.ts` and
+   `ArchForgeWeb/apps/web/src/types/enums.generated.ts`. Commit the regenerated files.
+4. Frontend CI fails when those generated files drift from `enums/enums.yaml`.
+5. Do not ship a backend value the UI cannot name.
+
+## Generated TypeScript constants
+
+Both frontends consume `enums.generated.ts` (generated, never hand-edited). For every entry in
+`enums/enums.yaml` it exports:
+
+- `<Enum>` const object (`as const`) + matching union type,
+- `<Enum>Label` record mapping value → label for rendering.
 
 ## MenuTypeEnum
 

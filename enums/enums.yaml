@@ -141,3 +141,16 @@ enums:
       - name: REGISTER
         value: 3
         label: 注册
+  VisibleStatusEnum:
+    source: archforge-common-base
+    class: com.lesofn.archforge.common.enums.common.VisibleStatusEnum
+    dictionary: sysMenu.isVisible
+    field: visible
+    values:
+      - name: HIDE
+        value: 0
+        label: 隐藏
+      - name: SHOW
+        value: 1
+        label: 显示
+
