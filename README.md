@@ -39,6 +39,36 @@ Start here:
 | Specs index | [`specs/api-path.md`](specs/api-path.md), [`specs/security.md`](specs/security.md), [`specs/enum-sync.md`](specs/enum-sync.md) |
 | Agent skills | [`skills/index.yaml`](skills/index.yaml) |
 
+## How the contract flows
+
+Every arrow below ends in a CI gate — implementations cannot drift from this repo unnoticed:
+
+```mermaid
+flowchart LR
+  subgraph spec["this repo"]
+    OAS["api/openapi.yaml"]
+    ENUMS["enums/enums.yaml"]
+    ERRC["specs/error-codes.md"]
+  end
+  subgraph be["ArchForge backend"]
+    LIVE["live springdoc JSON"]
+    CODES["ErrorCode enums"]
+  end
+  subgraph fe["Web + Admin frontends"]
+    SDKT["src/types/schema.d.ts"]
+    ENUMTS["enums.generated.ts"]
+  end
+
+  OAS -->|"gen:api"| SDKT
+  ENUMS -->|"gen-enums.mjs"| ENUMTS
+  SDKT -->|"git diff --exit-code"| G1["sdk-sync gate"]
+  ENUMTS -->|"git diff --exit-code"| G2["enum-sync gate"]
+  LIVE -->|"oasdiff breaking"| G3["no-breaking-changes gate"]
+  CODES -->|"check-error-codes.py"| G4["error-code registry gate"]
+```
+
+Change flow: **edit this repo first**, then make the implementation follow. To touch an endpoint: update `openapi.yaml`, implement it, export the live springdoc JSON (`OpenApiSnapshotTest`), and let `oasdiff` prove existing consumers see no breaking change. Shared enums follow `Java enum → enums.yaml → generated TS` (see [`specs/enum-sync.md`](specs/enum-sync.md)).
+
 ## Ports
 
 | Process | Port |
