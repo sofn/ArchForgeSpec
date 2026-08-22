@@ -777,7 +777,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminEnvelope"
+                $ref: "#/components/schemas/WebEnvelopeLogin"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -785,26 +785,38 @@ paths:
     post:
       tags: [web]
       summary: C-end logout
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebLogoutRequest"
       responses:
         "200":
           description: Wrapped boolean
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminEnvelope"
+                $ref: "#/components/schemas/WebEnvelopeBoolean"
 
   /web/refresh-token:
     post:
       tags: [web]
       summary: Refresh C-end token
       security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebRefreshTokenRequest"
       responses:
         "200":
           description: Wrapped login payload
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminEnvelope"
+                $ref: "#/components/schemas/WebEnvelopeLogin"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -813,40 +825,76 @@ paths:
       tags: [web]
       summary: Register by email
       security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebRegisterRequest"
       responses:
         "200":
           description: Wrapped login payload
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AdminEnvelope"
+                $ref: "#/components/schemas/WebEnvelopeLogin"
 
   /web/forgot-password:
     post:
       tags: [web]
       summary: Send reset-password code
       security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebForgotPasswordRequest"
       responses:
         "200":
           description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeBoolean"
 
   /web/reset-password:
     post:
       tags: [web]
       summary: Reset password by email code
       security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebResetPasswordRequest"
       responses:
         "200":
           description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeBoolean"
 
   /web/verification-code/send:
     post:
       tags: [web]
       summary: Send email verification code
       security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebSendVerificationCodeRequest"
       responses:
         "200":
           description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeBoolean"
 
   /web/user/profile:
     get:
@@ -855,6 +903,10 @@ paths:
       responses:
         "200":
           description: Wrapped profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeProfile"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -862,9 +914,19 @@ paths:
     post:
       tags: [web]
       summary: Change password while logged in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebChangePasswordRequest"
       responses:
         "200":
           description: Wrapped boolean
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeBoolean"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -875,22 +937,46 @@ paths:
       responses:
         "200":
           description: Wrapped metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeMetrics"
 
   /web/notices:
     get:
       tags: [web]
       summary: Latest notices
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Wrapped notice list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeNoticeList"
 
   /web/operation-logs:
     get:
       tags: [web]
       summary: Recent operation logs
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Wrapped log list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeOperationLogList"
 
   /web/categories:
     get:
@@ -900,21 +986,61 @@ paths:
       responses:
         "200":
           description: Wrapped category list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeCategoryList"
 
   /web/articles:
     get:
       tags: [web]
       summary: Published articles
       security: []
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: currentPage
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Wrapped page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeArticlePage"
     post:
       tags: [web]
       summary: Create article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebArticleCreateRequest"
       responses:
         "200":
           description: Wrapped article id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeLong"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -922,9 +1048,24 @@ paths:
     get:
       tags: [web]
       summary: Current user's articles
+      parameters:
+        - name: currentPage
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Wrapped page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeArticlePage"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -942,14 +1083,33 @@ paths:
       responses:
         "200":
           description: Wrapped article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeArticleDetail"
 
   /web/file/upload:
     post:
       tags: [web]
       summary: Upload C-end file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         "200":
           description: Wrapped file payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebEnvelopeFileUpload"
         "401":
           $ref: "#/components/responses/WebProblem"
 
@@ -1047,3 +1207,387 @@ components:
         code:
           type: integer
           description: Optional ArchForge error code property
+    WebLoginResponse:
+      type: object
+      required: [userId, username, tokenName, accessToken]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        nickname:
+          type: string
+        avatar:
+          type: string
+        tokenName:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expires:
+          type: string
+
+    WebLogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    WebRefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    WebUserProfileResponse:
+      type: object
+      required: [userId, username]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        nickname:
+          type: string
+        avatar:
+          type: string
+
+    WebChangePasswordRequest:
+      type: object
+      required: [oldPassword, newPassword, confirmPassword]
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+        confirmPassword:
+          type: string
+
+    WebSendVerificationCodeRequest:
+      type: object
+      required: [email, purpose]
+      properties:
+        email:
+          type: string
+        purpose:
+          type: string
+          enum: [REGISTER, RESET_PASSWORD]
+
+    WebRegisterRequest:
+      type: object
+      required: [email, password, confirmPassword, code]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        confirmPassword:
+          type: string
+        code:
+          type: string
+
+    WebResetPasswordRequest:
+      type: object
+      required: [email, code, newPassword, confirmPassword]
+      properties:
+        email:
+          type: string
+        code:
+          type: string
+        newPassword:
+          type: string
+        confirmPassword:
+          type: string
+
+    WebForgotPasswordRequest:
+      type: object
+      required: [email, purpose]
+      properties:
+        email:
+          type: string
+        purpose:
+          type: string
+          enum: [RESET_PASSWORD]
+
+    WebDashboardMetricsResponse:
+      type: object
+      required: [userTotal, onlineNow, todayLogin, todayOperation]
+      properties:
+        userTotal:
+          type: integer
+          format: int64
+        onlineNow:
+          type: integer
+          format: int64
+        todayLogin:
+          type: integer
+          format: int64
+        todayOperation:
+          type: integer
+          format: int64
+
+    WebNoticeResponse:
+      type: object
+      required: [id, title, createTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        content:
+          type: string
+        noticeType:
+          type: integer
+        createTime:
+          type: string
+
+    WebOperationLogResponse:
+      type: object
+      required: [id, username, operatingTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        module:
+          type: string
+        summary:
+          type: string
+        operatingTime:
+          type: string
+
+    WebCategoryResponse:
+      type: object
+      required: [id, name, slug, sortOrder, articleCount]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        slug:
+          type: string
+        sortOrder:
+          type: integer
+        articleCount:
+          type: integer
+          format: int64
+
+    WebArticleSummaryResponse:
+      type: object
+      required: [id, title, slug, summary, coverImageUrl, categoryName, publishTime]
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+        coverImageFileId:
+          type:
+            - integer
+            - "null"
+          format: int64
+        coverImageUrl:
+          type: string
+        categoryName:
+          type: string
+        publishTime:
+          type: string
+
+    WebArticleDetailResponse:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+        - summary
+        - content
+        - coverImageUrl
+        - categoryId
+        - categoryName
+        - categorySlug
+        - publishTime
+        - createTime
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        coverImageFileId:
+          type:
+            - integer
+            - "null"
+          format: int64
+        coverImageUrl:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+        categorySlug:
+          type: string
+        publishTime:
+          type: string
+        createTime:
+          type: string
+
+    WebArticleCreateRequest:
+      type: object
+      required: [categoryId, title, content]
+      properties:
+        categoryId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        coverImageFileId:
+          type:
+            - integer
+            - "null"
+          format: int64
+
+    WebFileUploadResponse:
+      type: object
+      required: [fileId, url, name]
+      properties:
+        fileId:
+          type: integer
+          format: int64
+        url:
+          type: string
+        name:
+          type: string
+
+    WebArticlePage:
+      type: object
+      required: [list, total, pageSize, currentPage]
+      properties:
+        list:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebArticleSummaryResponse"
+        total:
+          type: integer
+          format: int64
+        pageSize:
+          type: integer
+        currentPage:
+          type: integer
+
+    WebEnvelopeBoolean:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              type: boolean
+
+    WebEnvelopeLong:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              type: integer
+              format: int64
+
+    WebEnvelopeLogin:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebLoginResponse"
+
+    WebEnvelopeProfile:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebUserProfileResponse"
+
+    WebEnvelopeMetrics:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebDashboardMetricsResponse"
+
+    WebEnvelopeNoticeList:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/WebNoticeResponse"
+
+    WebEnvelopeOperationLogList:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/WebOperationLogResponse"
+
+    WebEnvelopeCategoryList:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/WebCategoryResponse"
+
+    WebEnvelopeArticlePage:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebArticlePage"
+
+    WebEnvelopeArticleDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebArticleDetailResponse"
+
+    WebEnvelopeFileUpload:
+      allOf:
+        - $ref: "#/components/schemas/AdminEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WebFileUploadResponse"
+
